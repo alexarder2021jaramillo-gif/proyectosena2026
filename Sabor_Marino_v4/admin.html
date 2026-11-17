@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Sabor Marino</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Sabor Marino - Zona Administrativa</h1>
+        <nav>
+            <a href="inicio.html">Ver Sitio Público</a>
+            <button id="btn-cerrar-sesion" class="btn-salir">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main class="admin-contenedor">
+        <!-- Pestañas de navegación interna -->
+        <div class="admin-tabs">
+            <button class="tab-btn activo" onclick="mostrarSeccion('sec-pedidos', this)">Pedidos</button>
+            <button class="tab-btn" onclick="mostrarSeccion('sec-reservas', this)">Reservas</button>
+            <button class="tab-btn" onclick="mostrarSeccion('sec-clientes', this)">Clientes</button>
+            <button class="tab-btn" onclick="mostrarSeccion('sec-roles', this)">Roles</button>
+        </div>
+
+        <!-- 1. SECCIÓN PEDIDOS -->
+        <section id="sec-pedidos" class="admin-seccion">
+            <h2>Gestión de Pedidos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Platillo</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-pedidos"></tbody>
+            </table>
+        </section>
+
+        <!-- 2. SECCIÓN RESERVAS -->
+        <section id="sec-reservas" class="admin-seccion" style="display: none;">
+            <h2>Gestión de Reservas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Fecha y Hora</th>
+                        <th>Personas</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-reservas"></tbody>
+            </table>
+        </section>
+
+        <!-- 3. SECCIÓN CLIENTES -->
+        <section id="sec-clientes" class="admin-seccion" style="display: none;">
+            <h2>Clientes Registrados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-clientes"></tbody>
+            </table>
+        </section>
+
+        <!-- 4. SECCIÓN ROLES -->
+        <section id="sec-roles" class="admin-seccion" style="display: none;">
+            <h2>Administración de Roles</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuario / Correo</th>
+                        <th>Rol Actual</th>
+                        <th>Cambiar Rol</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-roles"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="servicios.js"></script>
+</body>
+</html>
