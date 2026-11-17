@@ -501,4 +501,173 @@ a {
   padding: 20px;
   margin-top: 40px;
   font-size: 14px;
+  /* ========================================================
+   PANEL ADMINISTRATIVO (admin_panel.html)
+   ======================================================== */
+
+/* Encabezado exclusivo del panel administrativo */
+header {
+  background-color: #0b3c49;
+  color: #ffffff;
+  padding: 18px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+header h1 {
+  font-size: 22px;
+  color: #ffffff;
+  margin: 0;
+}
+
+header nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+header nav a {
+  color: #ffffff;
+  background-color: #15596b;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+header nav a:hover {
+  background-color: #1d738a;
+}
+
+.btn-salir {
+  background-color: #cc0000;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-salir:hover {
+  background-color: #a30000;
+}
+
+/* Contenedor principal del panel */
+.admin-contenedor {
+  max-width: 1050px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+/* Barra de pestañas (Pedidos, Reservas, Clientes, Roles) */
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #dddddd;
+  padding-bottom: 12px;
+}
+
+.tab-btn {
+  background-color: #ffffff;
+  color: #0b3c49;
+  border: 1px solid #cccccc;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  background-color: #e6eef0;
+  border-color: #0b3c49;
+}
+
+.tab-btn.activo {
+  background-color: #d9480f;
+  color: #ffffff;
+  border-color: #d9480f;
+}
+
+/* Tarjeta blanca para cada sección */
+.admin-seccion {
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  padding: 25px;
+  overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
+}
+
+.admin-seccion h2 {
+  color: #0b3c49;
+  font-size: 22px;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid #d9480f;
+  display: inline-block;
+}
+
+/* Estilos de las tablas administrativas */
+.admin-seccion table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.admin-seccion th {
+  background-color: #0b3c49;
+  color: #ffffff;
+  text-align: left;
+  padding: 12px 14px;
+  font-weight: bold;
+}
+
+.admin-seccion td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #222222;
+  vertical-align: middle;
+}
+
+.admin-seccion tbody tr:nth-child(even) {
+  background-color: #f9f7f3;
+}
+
+.admin-seccion tbody tr:hover {
+  background-color: #fde8d7;
+}
+
+/* Botones y selectores que genera el JS dentro de las tablas */
+.admin-seccion td button {
+  background-color: #0b3c49;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.admin-seccion td button:hover {
+  background-color: #d9480f;
+}
+
+.admin-seccion td select {
+  padding: 6px 10px;
+  border: 1px solid #bbbbbb;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: #ffffff;
+  color: #222222;
+}
 }
