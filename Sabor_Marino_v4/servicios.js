@@ -86,9 +86,27 @@ function cerrarErrores() {
 }
 
 // ==========================================
-// 3. USUARIOS EN LOCALSTORAGE
+// 3. CONEXIÓN CON API PHP / MYSQL (CON RESPALDO LOCAL)
 // ==========================================
-function obtenerUsuarios() {
+async function llamarAPI(accion, datos = null) {
+    try {
+        const opciones = datos
+            ? {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(datos)
+              }
+            : { method: "GET" };
+
+        const respuesta = await fetch(`api.php?accion=${accion}`, opciones);
+        if (!respuesta.ok) throw new Error("Sin servidor PHP");
+        return await respuesta.json();
+    } catch (error) {
+        return null; // Activa modo respaldo localStorage si no está en WampServer
+    }
+}
+
+function obtenerUsuariosLocal() {
     var datos = localStorage.getItem("usuariosSaborMarino");
     if (datos) {
         try {
@@ -98,34 +116,37 @@ function obtenerUsuarios() {
     }
     var adminInicial = [
         {
+            id: 1,
             nombres: "Administrador Principal",
             correo: "admin@sabormarino.com",
             password: "1234",
+            telefono: "3001234567",
             rol: "Administrador"
         }
     ];
-    guardarUsuarios(adminInicial);
+    localStorage.setItem("usuariosSaborMarino", JSON.stringify(adminInicial));
     return adminInicial;
 }
 
-function guardarUsuarios(listaUsuarios) {
-    localStorage.setItem("usuariosSaborMarino", JSON.stringify(listaUsuarios));
-}
-
 // ==========================================
-// 4. REGISTRO E INICIO DE SESIÓN (A PRUEBA DE FALLOS)
+// 4. REGISTRO, INICIO DE SESIÓN Y FORMULARIOS
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
+    // Conectar botón de cerrar sesión en admin_panel.html
+    var btnSalir = document.getElementById("btn-cerrar-sesion");
+    if (btnSalir) {
+        btnSalir.addEventListener("click", cerrarSesion);
+    }
+
     // --- REGISTRO ---
     var formRegistro = document.getElementById("form-registro");
     if (formRegistro) {
-        formRegistro.addEventListener("submit", function (evento) {
+        formRegistro.addEventListener("submit", async function (evento) {
             evento.preventDefault();
 
-            // Buscar los inputs por ID o por tipo dentro del formulario
-            var elNombres = document.getElementById("reg-nombres") || formRegistro.querySelector('input[type="text"]');
-            var elCorreo = document.getElementById("reg-correo") || formRegistro.querySelector('input[type="email"]');
-            var elPass = document.getElementById("reg-password") || formRegistro.querySelector('input[type="password"]');
+            var elNombres = document.getElementById("reg-nombres");
+            var elCorreo = document.getElementById("reg-correo");
+            var elPass = document.getElementById("reg-password");
 
             var nombres = elNombres ? elNombres.value.trim() : "";
             var correo = elCorreo ? elCorreo.value.trim().toLowerCase() : "";
@@ -136,28 +157,38 @@ document.addEventListener("DOMContentLoaded", function () {
             if (correo === "" || correo.indexOf("@") === -1) errores.push("Por favor ingresa un correo electronico valido.");
             if (password === "" || password.length < 4) errores.push("La contrasena debe tener al menos 4 caracteres.");
 
-            var usuarios = obtenerUsuarios();
-            for (var i = 0; i < usuarios.length; i++) {
-                if (usuarios[i].correo === correo) {
-                    errores.push("Este correo electronico ya se encuentra registrado.");
-                    break;
-                }
-            }
-
             if (errores.length > 0) {
                 mostrarErrores(errores);
                 return;
             }
 
-            cerrarErrores();
-            usuarios.push({
-                nombres: nombres,
-                correo: correo,
-                password: password,
-                rol: "Cliente"
-            });
-            guardarUsuarios(usuarios);
+            // Intentar registrar en MySQL (WampServer)
+            const resBD = await llamarAPI("registro", { nombres, correo, password });
 
+            if (resBD) {
+                if (!resBD.exito) {
+                    mostrarErrores([resBD.mensaje]);
+                    return;
+                }
+            } else {
+                // Respaldo localStorage
+                var usuarios = obtenerUsuariosLocal();
+                if (usuarios.some(u => u.correo === correo)) {
+                    mostrarErrores(["Este correo electronico ya se encuentra registrado."]);
+                    return;
+                }
+                usuarios.push({
+                    id: Date.now(),
+                    nombres: nombres,
+                    correo: correo,
+                    password: password,
+                    telefono: "No registrado",
+                    rol: "Cliente"
+                });
+                localStorage.setItem("usuariosSaborMarino", JSON.stringify(usuarios));
+            }
+
+            cerrarErrores();
             formRegistro.reset();
             alert("Registro exitoso. Ahora puedes iniciar sesion.");
             mostrarLogin();
@@ -167,11 +198,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- INICIO DE SESIÓN ---
     var formLogin = document.getElementById("form-login");
     if (formLogin) {
-        formLogin.addEventListener("submit", function (evento) {
+        formLogin.addEventListener("submit", async function (evento) {
             evento.preventDefault();
 
-            var elCorreo = document.getElementById("login-correo") || formLogin.querySelector('input[type="email"], input[type="text"]');
-            var elPass = document.getElementById("login-password") || formLogin.querySelector('input[type="password"]');
+            var elCorreo = document.getElementById("login-correo");
+            var elPass = document.getElementById("login-password");
 
             var correo = elCorreo ? elCorreo.value.trim().toLowerCase() : "";
             var password = elPass ? elPass.value.trim() : "";
@@ -185,14 +216,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            var usuarios = obtenerUsuarios();
             var usuarioEncontrado = null;
+            const resBD = await llamarAPI("login", { correo, password });
 
-            for (var i = 0; i < usuarios.length; i++) {
-                if (usuarios[i].correo === correo && usuarios[i].password === password) {
-                    usuarioEncontrado = usuarios[i];
-                    break;
+            if (resBD) {
+                if (resBD.exito) {
+                    usuarioEncontrado = resBD.usuario;
+                } else {
+                    mostrarErrores([resBD.mensaje]);
+                    return;
                 }
+            } else {
+                // Respaldo localStorage
+                var usuarios = obtenerUsuariosLocal();
+                usuarioEncontrado = usuarios.find(u => u.correo === correo && u.password === password) || null;
             }
 
             if (usuarioEncontrado) {
@@ -207,12 +244,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- PEDIDOS Y RESERVAS ---
+    // --- PEDIDOS ---
     var rutaActual = decodeURIComponent(window.location.pathname);
     if (rutaActual.includes("pedido.html")) {
         var formPedido = document.querySelector("form");
         if (formPedido) {
-            formPedido.addEventListener("submit", function (e) {
+            formPedido.addEventListener("submit", async function (e) {
                 e.preventDefault();
                 var inputs = formPedido.querySelectorAll("input, select, textarea");
                 var cliente = inputs[0] && inputs[0].value.trim() !== "" ? inputs[0].value.trim() : "Cliente Web";
@@ -222,17 +259,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 var cantidad = inputCantidad ? inputCantidad.value : 1;
                 var direccion = inputs[inputs.length - 1] ? inputs[inputs.length - 1].value : "En restaurante";
 
-                guardarPedido(cliente, plato, cantidad, direccion);
+                const resBD = await llamarAPI("crear_pedido", { cliente, plato, cantidad, direccion });
+                if (!resBD) {
+                    const pedidos = JSON.parse(localStorage.getItem("pedidosSaborMarino")) || [];
+                    pedidos.push({ id: Date.now(), cliente, plato, cantidad, direccion, estado: "Pendiente" });
+                    localStorage.setItem("pedidosSaborMarino", JSON.stringify(pedidos));
+                }
+
                 alert("¡Pedido enviado con éxito!");
                 window.location.href = "la carta.html";
             });
         }
     }
 
+    // --- RESERVAS ---
     if (rutaActual.includes("reservas.html")) {
         var formReserva = document.querySelector("form");
         if (formReserva) {
-            formReserva.addEventListener("submit", function (e) {
+            formReserva.addEventListener("submit", async function (e) {
                 e.preventDefault();
                 var inputCliente = formReserva.querySelector('input[type="text"]');
                 var inputFecha = formReserva.querySelector('input[type="date"]');
@@ -240,13 +284,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 var inputPersonas = formReserva.querySelector('input[type="number"]');
                 var selectMesa = formReserva.querySelector("select");
 
-                guardarReserva(
-                    inputCliente ? inputCliente.value : "Cliente",
-                    inputFecha ? inputFecha.value : "Sin fecha",
-                    inputHora ? inputHora.value : "Sin hora",
-                    inputPersonas ? inputPersonas.value : 2,
-                    selectMesa ? selectMesa.value : "Salón principal"
-                );
+                var datosReserva = {
+                    cliente: inputCliente ? inputCliente.value : "Cliente",
+                    fecha: inputFecha ? inputFecha.value : "2026-11-17",
+                    hora: inputHora ? inputHora.value : "12:00",
+                    personas: inputPersonas ? inputPersonas.value : 2,
+                    mesa: selectMesa ? selectMesa.value : "Salón principal"
+                };
+
+                const resBD = await llamarAPI("crear_reserva", datosReserva);
+                if (!resBD) {
+                    const reservas = JSON.parse(localStorage.getItem("reservasSaborMarino")) || [];
+                    reservas.push({ id: Date.now(), ...datosReserva, estado: "Confirmada" });
+                    localStorage.setItem("reservasSaborMarino", JSON.stringify(reservas));
+                }
+
                 alert("¡Reserva registrada con éxito!");
                 formReserva.reset();
             });
@@ -257,37 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ==========================================
-// 5. GUARDAR PEDIDOS Y RESERVAS
-// ==========================================
-function guardarPedido(cliente, plato, cantidad, direccion) {
-    const pedidos = JSON.parse(localStorage.getItem("pedidosSaborMarino")) || [];
-    pedidos.push({
-        id: Date.now(),
-        cliente: cliente,
-        plato: plato,
-        cantidad: cantidad,
-        direccion: direccion,
-        estado: "Pendiente"
-    });
-    localStorage.setItem("pedidosSaborMarino", JSON.stringify(pedidos));
-}
-
-function guardarReserva(cliente, fecha, hora, personas, mesa) {
-    const reservas = JSON.parse(localStorage.getItem("reservasSaborMarino")) || [];
-    reservas.push({
-        id: Date.now(),
-        cliente: cliente,
-        fecha: fecha,
-        hora: hora,
-        personas: personas,
-        mesa: mesa,
-        estado: "Confirmada"
-    });
-    localStorage.setItem("reservasSaborMarino", JSON.stringify(reservas));
-}
-
-// ==========================================
-// 6. PANEL ADMINISTRATIVO
+// 5. PANEL ADMINISTRATIVO Y ACCIONES
 // ==========================================
 function mostrarSeccion(idSeccion, boton) {
     document.querySelectorAll(".admin-seccion").forEach(function (sec) {
@@ -301,7 +323,7 @@ function mostrarSeccion(idSeccion, boton) {
     if (boton) boton.classList.add("activo");
 }
 
-function cargarPanelAdmin() {
+async function cargarPanelAdmin() {
     const tablaPedidos = document.getElementById("tabla-pedidos");
     const tablaReservas = document.getElementById("tabla-reservas");
     const tablaClientes = document.getElementById("tabla-clientes");
@@ -309,14 +331,19 @@ function cargarPanelAdmin() {
 
     if (!tablaPedidos && !tablaReservas && !tablaClientes && !tablaRoles) return;
 
-    const pedidos = JSON.parse(localStorage.getItem("pedidosSaborMarino")) || [];
-    const reservas = JSON.parse(localStorage.getItem("reservasSaborMarino")) || [];
-    const usuarios = obtenerUsuarios();
+    let pedidos = [];
+    let reservas = [];
+    let usuarios = [];
 
-    const sesion = JSON.parse(localStorage.getItem("sesionSaborMarino"));
-    const spanUsuario = document.getElementById("usuario-activo");
-    if (sesion && spanUsuario) {
-        spanUsuario.textContent = sesion.nombres || sesion.correo;
+    const resBD = await llamarAPI("cargar_admin");
+    if (resBD && resBD.exito) {
+        pedidos = resBD.pedidos;
+        reservas = resBD.reservas;
+        usuarios = resBD.usuarios;
+    } else {
+        pedidos = JSON.parse(localStorage.getItem("pedidosSaborMarino")) || [];
+        reservas = JSON.parse(localStorage.getItem("reservasSaborMarino")) || [];
+        usuarios = obtenerUsuariosLocal();
     }
 
     if (tablaPedidos) {
@@ -326,12 +353,12 @@ function cargarPanelAdmin() {
                 return `<tr>
                     <td>#${p.id.toString().slice(-4)}</td>
                     <td>${p.cliente}</td>
-                    <td>${p.plato} (x${p.cantidad})</td>
-                    <td>${p.direccion || "En mesa"}</td>
+                    <td>${p.plato}</td>
+                    <td>${p.cantidad} (${p.direccion || "En mesa"})</td>
                     <td><strong>${p.estado}</strong></td>
                     <td>
-                        <button onclick="cambiarEstadoPedido(${index})" class="btn-accion">Entregar</button>
-                        <button onclick="eliminarPedido(${index})" class="btn-eliminar">Eliminar</button>
+                        <button onclick="cambiarEstadoPedido(${p.id}, ${index})" class="btn-accion">Entregar</button>
+                        <button onclick="eliminarPedido(${p.id}, ${index})" class="btn-eliminar">Eliminar</button>
                     </td>
                 </tr>`;
             }).join("");
@@ -344,11 +371,11 @@ function cargarPanelAdmin() {
                 return `<tr>
                     <td>#${r.id.toString().slice(-4)}</td>
                     <td>${r.cliente}</td>
-                    <td>${r.fecha} -${r.hora || ""}</td>
-                    <td>${r.personas} pers.${r.mesa ? "(" + r.mesa + ")" : ""}</td>
+                    <td>${r.fecha} - ${r.hora || ""}</td>
+                    <td>${r.personas} pers. (${r.mesa || "Salón"})</td>
                     <td><strong>${r.estado}</strong></td>
                     <td>
-                        <button onclick="cancelarReserva(${index})" class="btn-eliminar">Cancelar</button>
+                        <button onclick="cancelarReserva(${r.id}, ${index})" class="btn-eliminar">Cancelar</button>
                     </td>
                 </tr>`;
             }).join("");
@@ -356,14 +383,15 @@ function cargarPanelAdmin() {
 
     if (tablaClientes) {
         tablaClientes.innerHTML = usuarios.length === 0
-            ? '<tr><td colspan="4">No hay clientes registrados.</td></tr>'
+            ? '<tr><td colspan="5">No hay clientes registrados.</td></tr>'
             : usuarios.map(function (u, index) {
                 return `<tr>
                     <td>${index + 1}</td>
                     <td>${u.nombres}</td>
                     <td>${u.correo}</td>
+                    <td>${u.telefono || "No registrado"}</td>
                     <td>
-                        <button onclick="eliminarCliente(${index})" class="btn-eliminar">Eliminar</button>
+                        <button onclick="eliminarCliente(${u.id}, ${index})" class="btn-eliminar">Eliminar</button>
                     </td>
                 </tr>`;
             }).join("");
@@ -375,8 +403,66 @@ function cargarPanelAdmin() {
                 <td>${u.nombres} (${u.correo})</td>
                 <td><strong>${u.rol || "Cliente"}</strong></td>
                 <td>
-                    <select onchange="cambiarRol(${index}, this.value)">
+                    <select onchange="cambiarRol(${u.id}, ${index}, this.value)">
                         <option value="Administrador" ${u.rol === "Administrador" ? "selected" : ""}>Administrador</option>
                         <option value="Mesero / Cajero" ${u.rol === "Mesero / Cajero" ? "selected" : ""}>Mesero / Cajero</option>
-                        <option value="Cliente"
-    // --- E) Cargar datos si estamos en el Panel Administrativo
+                        <option value="Cliente" ${u.rol === "Cliente" ? "selected" : ""}>Cliente</option>
+                    </select>
+                </td>
+            </tr>`;
+        }).join("");
+    }
+}
+
+async function cambiarEstadoPedido(id, index) {
+    const res = await llamarAPI("entregar_pedido", { id });
+    if (!res) {
+        const pedidos = JSON.parse(localStorage.getItem("pedidosSaborMarino")) || [];
+        if (pedidos[index]) pedidos[index].estado = "Entregado";
+        localStorage.setItem("pedidosSaborMarino", JSON.stringify(pedidos));
+    }
+    cargarPanelAdmin();
+}
+
+async function eliminarPedido(id, index) {
+    if (!confirm("¿Seguro que deseas eliminar este pedido?")) return;
+    const res = await llamarAPI("eliminar_pedido", { id });
+    if (!res) {
+        const pedidos = JSON.parse(localStorage.getItem("pedidosSaborMarino")) || [];
+        pedidos.splice(index, 1);
+        localStorage.setItem("pedidosSaborMarino", JSON.stringify(pedidos));
+    }
+    cargarPanelAdmin();
+}
+
+async function cancelarReserva(id, index) {
+    if (!confirm("¿Cancelar esta reserva?")) return;
+    const res = await llamarAPI("cancelar_reserva", { id });
+    if (!res) {
+        const reservas = JSON.parse(localStorage.getItem("reservasSaborMarino")) || [];
+        if (reservas[index]) reservas[index].estado = "Cancelada";
+        localStorage.setItem("reservasSaborMarino", JSON.stringify(reservas));
+    }
+    cargarPanelAdmin();
+}
+
+async function eliminarCliente(id, index) {
+    if (!confirm("¿Eliminar este usuario?")) return;
+    const res = await llamarAPI("eliminar_cliente", { id });
+    if (!res) {
+        const usuarios = obtenerUsuariosLocal();
+        usuarios.splice(index, 1);
+        localStorage.setItem("usuariosSaborMarino", JSON.stringify(usuarios));
+    }
+    cargarPanelAdmin();
+}
+
+async function cambiarRol(id, index, nuevoRol) {
+    const res = await llamarAPI("cambiar_rol", { id, rol: nuevoRol });
+    if (!res) {
+        const usuarios = obtenerUsuariosLocal();
+        if (usuarios[index]) usuarios[index].rol = nuevoRol;
+        localStorage.setItem("usuariosSaborMarino", JSON.stringify(usuarios));
+    }
+    cargarPanelAdmin();
+}
