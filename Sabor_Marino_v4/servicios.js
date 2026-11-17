@@ -123,4 +123,138 @@ document.getElementById("form-login").addEventListener("submit", function(evento
     } else {
         mostrarErrores(["Correo o contrasena incorrectos, o el usuario no esta registrado."]);
     }
+    // ==========================================
+// 1. CONTROL DE SESIÓN Y PROTECCIÓN DE RUTAS
+// ==========================================
+
+// Lista de páginas que requieren inicio de sesión
+const PAGINAS_PROTEGIDAS = ['admin_panel.html', 'mis_pedidos.html'];
+
+function verificarAcceso() {
+    const paginaActual = window.location.pathname.split('/').pop();
+    const sesionActiva = JSON.parse(localStorage.getItem('sesionSaborMarino'));
+
+    // Si está en una página protegida y NO hay sesión, redirigir al login
+    if (PAGINAS_PROTEGIDAS.includes(paginaActual) && !sesionActiva) {
+        alert('Debes iniciar sesión para acceder a esta sección.');
+        window.location.href = 'login.html';
+    }
+}
+
+// Ejecutar verificación apenas cargue cualquier página
+verificarAcceso();
+
+// Función para cerrar sesión
+function cerrarSesion() {
+    localStorage.removeItem('sesionSaborMarino');
+    alert('Sesión cerrada correctamente.');
+    window.location.href = 'login.html';
+}
+
+// ==========================================
+// 2. GUARDAR PEDIDOS Y RESERVAS (Desde pedido.html y reservas.html)
+// ==========================================
+
+function guardarPedido(cliente, plato, cantidad, direccion) {
+    const pedidos = JSON.parse(localStorage.getItem('pedidosSaborMarino')) || [];
+    const nuevoPedido = {
+        id: Date.now(),
+        cliente: cliente,
+        plato: plato,
+        cantidad: cantidad,
+        direccion: direccion,
+        estado: 'Pendiente'
+    };
+    pedidos.push(nuevoPedido);
+    localStorage.setItem('pedidosSaborMarino', JSON.stringify(pedidos));
+}
+
+function guardarReserva(cliente, fecha, hora, personas, mesa) {
+    const reservas = JSON.parse(localStorage.getItem('reservasSaborMarino')) || [];
+    const nuevaReserva = {
+        id: Date.now(),
+        cliente: cliente,
+        fecha: fecha,
+        hora: hora,
+        personas: personas,
+        mesa: mesa,
+        estado: 'Confirmada'
+    };
+    reservas.push(nuevaReserva);
+    localStorage.setItem('reservasSaborMarino', JSON.stringify(reservas));
+}
+
+// ==========================================
+// 3. RENDERIZAR PANEL DE ADMINISTRACIÓN
+// ==========================================
+
+function cargarPanelAdmin() {
+    const tablaPedidos = document.getElementById('tabla-pedidos');
+    const tablaReservas = document.getElementById('tabla-reservas');
+    if (!tablaPedidos || !tablaReservas) return;
+
+    const pedidos = JSON.parse(localStorage.getItem('pedidosSaborMarino')) || [];
+    const reservas = JSON.parse(localStorage.getItem('reservasSaborMarino')) || [];
+
+    // Mostrar usuario logueado
+    const sesion = JSON.parse(localStorage.getItem('sesionSaborMarino'));
+    const spanUsuario = document.getElementById('usuario-activo');
+    if (sesion && spanUsuario) {
+        spanUsuario.textContent = sesion.correo || sesion.usuario;
+    }
+
+    // Llenar tabla de pedidos
+    tablaPedidos.innerHTML = pedidos.length === 0 
+        ? '<tr><td colspan="6">No hay pedidos registrados.</td></tr>'
+        : pedidos.map((p, index) => `
+            <tr>
+                <td>#${p.id.toString().slice(-4)}</td>
+                <td>${p.cliente}</td>
+                <td>${p.plato} (x${p.cantidad})</td>
+                <td>${p.direccion}</td>
+                <td><strong>${p.estado}</strong></td>
+                <td>
+                    <button onclick="cambiarEstadoPedido(${index})" class="btn-accion">Entregar</button>
+                    <button onclick="eliminarPedido(${index})" class="btn-eliminar">Eliminar</button>
+                </td>
+            </tr>
+        `).join('');
+
+    // Llenar tabla de reservas
+    tablaReservas.innerHTML = reservas.length === 0
+        ? '<tr><td colspan="6">No hay reservas registradas.</td></tr>'
+        : reservas.map((r, index) => `
+            <tr>
+                <td>#${r.id.toString().slice(-4)}</td>
+                <td>${r.cliente}</td>
+                <td>${r.fecha} - ${r.hora}</td>
+                <td>${r.personas} pers. (${r.mesa})</td>
+                <td><strong>${r.estado}</strong></td>
+                <td>
+                    <button onclick="cancelarReserva(${index})" class="btn-eliminar">Cancelar</button>
+                </td>
+            </tr>
+        `).join('');
+}
+
+function cambiarEstadoPedido(index) {
+    const pedidos = JSON.parse(localStorage.getItem('pedidosSaborMarino')) || [];
+    pedidos[index].estado = 'Entregado';
+    localStorage.setItem('pedidosSaborMarino', JSON.stringify(pedidos));
+    cargarPanelAdmin();
+}
+
+function eliminarPedido(index) {
+    const pedidos = JSON.parse(localStorage.getItem('pedidosSaborMarino')) || [];
+    pedidos.splice(index, 1);
+    localStorage.setItem('pedidosSaborMarino', JSON.stringify(pedidos));
+    cargarPanelAdmin();
+}
+
+function cancelarReserva(index) {
+    const reservas = JSON.parse(localStorage.getItem('reservasSaborMarino')) || [];
+    reservas.splice(index, 1);
+    localStorage.setItem('reservasSaborMarino', JSON.stringify(reservas));
+    cargarPanelAdmin();
+}
 });
