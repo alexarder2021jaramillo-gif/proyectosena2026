@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas | Sabor Marino</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <a href="#contenido" class="saltar-contenido">Saltar al contenido</a>
+
+    <header class="barra-superior">
+        <a href="inicio.html" class="logo">Sabor <span>Marino</span></a>
+        <nav class="menu" aria-label="Navegacion principal">
+            <a href="inicio.html">Inicio</a>
+            <a href="la carta.html">La Carta</a>
+            <a href="reservas.html" class="activo">Reservas</a>
+            <a href="login.html">Iniciar Sesion</a>
+        </nav>
+    </header>
+
+    <main id="contenido">
+        <div class="contenedor">
+            <h1 class="titulo-pagina">RESERVA TU MESA</h1>
+            <p class="subtitulo-pagina">Asegura tu lugar y disfruta de una buena comida</p>
+            <div class="linea"></div>
+
+            <form class="formulario-caja" onsubmit="alert('Reserva solicitada correctamente'); return false;">
+                <div class="campo">
+                    <label for="nombre">Nombre Completo</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ej. Juan Perez" required>
+                </div>
+                <div class="campo">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" required>
+                </div>
+                <div class="campo">
+                    <label for="hora">Hora</label>
+                    <input type="time" id="hora" name="hora" required>
+                </div>
+                <div class="campo">
+                    <label for="personas">Numero de Personas</label>
+                    <select id="personas" name="personas">
+                        <option value="2">2 Personas</option>
+                        <option value="3">3 Personas</option>
+                        <option value="4">4 Personas</option>
+                        <option value="5">5 o mas Personas</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="notas">Notas Especiales (Opcional)</label>
+                    <textarea id="notas" name="notas" rows="3" placeholder="Alergias o celebraciones..."></textarea>
+                </div>
+                <button type="submit" class="boton" style="width: 100%;">SOLICITAR RESERVA</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="pie-pagina">
+        <p><strong>Sabor Marino</strong></p>
+        <p>Tradicion Marina y Sabor Local</p>
+    </footer>
+
+</body>
+</html>

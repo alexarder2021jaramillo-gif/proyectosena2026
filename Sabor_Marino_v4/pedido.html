@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacer Pedido | Sabor Marino</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <a href="#contenido" class="saltar-contenido">Saltar al contenido</a>
+
+    <header class="barra-superior">
+        <a href="inicio.html" class="logo">Sabor <span>Marino</span></a>
+        <nav class="menu" aria-label="Navegacion principal">
+            <a href="inicio.html">Inicio</a>
+            <a href="la carta.html" class="activo">La Carta</a>
+            <a href="reservas.html">Reservas</a>
+            <a href="login.html">Iniciar Sesion</a>
+        </nav>
+    </header>
+
+    <main id="contenido">
+        <div class="contenedor">
+            <h1 class="titulo-pagina">Realizar Pedido</h1>
+            <p class="subtitulo-pagina">Completa los datos para pedir tu plato</p>
+            <div class="linea"></div>
+
+            <form class="formulario-caja" onsubmit="alert('Pedido enviado con exito'); return false;">
+                <div class="campo">
+                    <label for="plato">Plato seleccionado</label>
+                    <input type="text" id="plato" name="plato" placeholder="Escribe el nombre del plato" required>
+                </div>
+                <div class="campo">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" id="cantidad" name="cantidad" value="1" min="1" required>
+                </div>
+                <div class="campo">
+                    <label for="direccion">Direccion o numero de mesa</label>
+                    <input type="text" id="direccion" name="direccion" placeholder="Ej. Mesa 4 o Calle 10 # 5-20" required>
+                </div>
+                <button type="submit" class="boton" style="width: 100%;">CONFIRMAR PEDIDO</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="pie-pagina">
+        <p><strong>Sabor Marino</strong></p>
+        <p>Tradicion Marina y Sabor Local</p>
+    </footer>
+
+</body>
+</html>
