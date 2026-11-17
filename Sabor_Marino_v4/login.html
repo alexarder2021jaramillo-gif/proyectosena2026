@@ -3,77 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesion | Sabor Marino</title>
+    <title>Acceso - Sabor Marino</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .contenedor-acceso {
+            max-width: 850px;
+            margin: 35px auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .caja-login {
+            flex: 1;
+            min-width: 300px;
+            background-color: #1e6091;
+            color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .caja-registro {
+            flex: 1;
+            min-width: 300px;
+            background-color: #a9d6e5;
+            color: #0b2545;
+            padding: 25px;
+            border-radius: 8px;
+            border: 2px solid #1e6091;
+        }
+        .caja-login input, .caja-registro input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 15px 0;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .input-error {
+            border: 2px solid #cc0000 !important;
+            background-color: #ffe6e6;
+        }
+        .btn-blanco {
+            background-color: #ffffff;
+            color: #1e6091;
+            border: none;
+            padding: 10px 18px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-azul {
+            background-color: #1e6091;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <a href="#contenido" class="saltar-contenido">Saltar al contenido</a>
 
-    <header class="barra-superior">
-        <a href="inicio.html" class="logo">Sabor <span>Marino</span></a>
-        <nav class="menu" aria-label="Navegacion principal">
+    <header>
+        <h1>Sabor Marino</h1>
+        <nav>
             <a href="inicio.html">Inicio</a>
             <a href="la carta.html">La Carta</a>
+            <a href="pedido.html">Mi Pedido (<span id="contador-carrito">0</span>)</a>
             <a href="reservas.html">Reservas</a>
-            <a href="login.html" class="activo">Iniciar Sesion</a>
+            <a href="login.html">Iniciar Sesión</a>
         </nav>
     </header>
 
-    <main id="contenido">
-        <div class="seccion-auth">
-            <!-- FUNCIONALIDAD 3: Informar posibles errores a un usuario -->
-            <div id="caja-errores" class="caja-error" role="alert">
-                <h3>Se encontraron los siguientes errores:</h3>
-                <ul id="lista-errores"></ul>
-                <button type="button" class="btn-blanco" onclick="cerrarErrores()">Entendido</button>
-            </div>
+    <main class="contenedor-acceso">
+        
+        <!-- BLOQUE 1: INICIAR SESIÓN -->
+        <section class="caja-login">
+            <h2>Iniciar Sesión</h2>
+            <p>Ingresa para administrar pedidos y reservas.</p>
+            <form id="form-login" novalidate>
+                <label for="login-correo">Correo Electrónico:</label>
+                <input type="email" id="login-correo" placeholder="admin@sabormarino.com" required>
 
-            <!-- FUNCIONALIDAD 2: Validar autenticidad de un usuario (Login) -->
-            <div id="vista-login" class="caja-login">
-                <h2>Iniciar Sesion</h2>
-                <p class="texto-ayuda">Ingresa tus datos para entrar a tu cuenta</p>
-                <form id="form-login" novalidate>
-                    <label for="login-correo">Correo electronico</label>
-                    <input type="email" id="login-correo" name="correo" placeholder="Escribe tu correo">
+                <label for="login-pass">Contraseña:</label>
+                <input type="password" id="login-pass" placeholder="••••••••" required>
 
-                    <label for="login-password">Contrasena</label>
-                    <input type="password" id="login-password" name="password" placeholder="Escribe tu contrasena">
+                <button type="submit" class="btn-blanco">Entrar al Panel</button>
+            </form>
+        </section>
 
-                    <button type="submit" class="btn-negro">Ingresar</button>
-                </form>
-                <p class="enlace-cambio">
-                    No tienes cuenta? <a href="#" onclick="mostrarRegistro(); return false;">Registrate aqui</a>
-                </p>
-            </div>
+        <!-- BLOQUE 2: CREAR CUENTA -->
+        <section class="caja-registro">
+            <h2>Registrarse</h2>
+            <p>Crea una cuenta nueva en el sistema.</p>
+            <form id="form-registro" novalidate>
+                <label for="reg-nombre">Nombre Completo:</label>
+                <input type="text" id="reg-nombre" placeholder="Tu nombre" required>
 
-            <!-- FUNCIONALIDAD 1: Ingresar informacion personal de un usuario (Registro) -->
-            <div id="vista-registro" class="caja-registro oculto">
-                <h2>Crear Cuenta</h2>
-                <p class="texto-ayuda">Ingresa tu informacion personal para registrarte</p>
-                <form id="form-registro" novalidate>
-                    <label for="reg-nombres">Nombres</label>
-                    <input type="text" id="reg-nombres" name="nombres" placeholder="Escribe tus nombres">
+                <label for="reg-correo">Correo Electrónico:</label>
+                <input type="email" id="reg-correo" placeholder="correo@ejemplo.com" required>
 
-                    <label for="reg-correo">Correo electronico</label>
-                    <input type="email" id="reg-correo" name="correo" placeholder="Escribe tu correo">
+                <label for="reg-pass">Contraseña:</label>
+                <input type="password" id="reg-pass" placeholder="Mínimo 4 caracteres" required>
 
-                    <label for="reg-password">Contrasena</label>
-                    <input type="password" id="reg-password" name="password" placeholder="Crea una contrasena">
+                <button type="submit" class="btn-azul">Guardar Registro</button>
+            </form>
+        </section>
 
-                    <button type="submit" class="btn-negro">Registrarse</button>
-                </form>
-                <p class="enlace-cambio">
-                    Ya tienes cuenta? <a href="#" onclick="mostrarLogin(); return false;">Inicia sesion aqui</a>
-                </p>
-            </div>
-        </div>
-    </main>
-
-    <footer class="pie-pagina">
-        <p><strong>Sabor Marino</strong></p>
-        <p>Tradicion Marina y Sabor Local</p>
-    </footer>
-
+    </
     <script src="auth.js"></script>
 </body>
 </html>
