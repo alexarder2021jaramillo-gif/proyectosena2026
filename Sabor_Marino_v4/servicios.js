@@ -4,7 +4,6 @@
 const PAGINAS_PROTEGIDAS = ["admin_panel.html", "admin.html"];
 
 function verificarAcceso() {
-    // Obtener solo el nombre del archivo actual (ej: "pedido.html" o "admin_panel.html")
     const rutaCompleta = decodeURIComponent(window.location.pathname);
     const paginaActual = rutaCompleta.substring(rutaCompleta.lastIndexOf("/") + 1);
     const sesionActiva = JSON.parse(localStorage.getItem("sesionSaborMarino"));
@@ -12,7 +11,7 @@ function verificarAcceso() {
     // 1. Proteger la zona administrativa
     if (PAGINAS_PROTEGIDAS.includes(paginaActual) && !sesionActiva) {
         alert("Debes iniciar sesión para acceder a la zona administrativa.");
-        window.location.replace("login.html");
+        window.location.replace("./login.html");
         return;
     }
 
@@ -22,11 +21,10 @@ function verificarAcceso() {
         const platoElegido = parametros.get("plato");
 
         if (!platoElegido || platoElegido.trim() === "") {
-            window.location.replace("la carta.html");
+            window.location.replace("./la carta.html");
             return;
         }
 
-        // Rellenar automáticamente el campo del platillo en pedido.html cuando cargue el DOM
         document.addEventListener("DOMContentLoaded", function () {
             const inputPlato = document.getElementById("plato-seleccionado") || document.querySelector('input[name="plato"]');
             if (inputPlato) {
@@ -36,14 +34,13 @@ function verificarAcceso() {
     }
 }
 
-// Ejecutar verificación apenas cargue el script
 verificarAcceso();
 
 // Función para cerrar sesión
 function cerrarSesion() {
     localStorage.removeItem("sesionSaborMarino");
     alert("Sesión cerrada correctamente.");
-    window.location.href = "login.html";
+    window.location.href = "./login.html";
 }
 
 // ==========================================
@@ -98,7 +95,6 @@ function obtenerUsuarios() {
         var lista = JSON.parse(datos);
         if (lista.length > 0) return lista;
     }
-    // Crear usuario administrador inicial por defecto
     var adminInicial = [
         {
             nombres: "Administrador Principal",
@@ -166,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- B) Formulario de Inicio de Sesión -> Redirige a Zona Administrativa ---
+    // --- B) Formulario de Inicio de Sesión -> Redirige a admin_panel.html ---
     var formLogin = document.getElementById("form-login");
     if (formLogin) {
         formLogin.addEventListener("submit", function (evento) {
@@ -204,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 cerrarErrores();
                 localStorage.setItem("sesionSaborMarino", JSON.stringify(usuarioEncontrado));
                 alert("Bienvenido " + usuarioEncontrado.nombres + ", ingresando a la zona administrativa.");
-                window.location.assign("admin_panel.html");
+                window.location.href = "./admin_panel.html";
             } else {
                 mostrarErrores(["Correo o contrasena incorrectos, o el usuario no esta registrado."]);
             }
@@ -219,4 +215,43 @@ document.addEventListener("DOMContentLoaded", function () {
             formPedido.addEventListener("submit", function (e) {
                 e.preventDefault();
                 var inputs = formPedido.querySelectorAll("input, select, textarea");
-                var cliente = inputs[0] ? inputs[0].value :
+                var cliente = inputs[0] && inputs[0].value.trim() !== "" ? inputs[0].value.trim() : "Cliente Web";
+                var inputPlato = document.getElementById("plato-seleccionado") || inputs[1];
+                var plato = inputPlato ? inputPlato.value : "Platillo";
+                var inputCantidad = formPedido.querySelector('input[type="number"]');
+                var cantidad = inputCantidad ? inputCantidad.value : 1;
+                var direccion = inputs[inputs.length - 1] ? inputs[inputs.length - 1].value : "En restaurante";
+
+                guardarPedido(cliente, plato, cantidad, direccion);
+                alert("¡Pedido enviado con éxito! El administrador ya puede verlo en el panel.");
+                window.location.href = "./la carta.html";
+            });
+        }
+    }
+
+    // --- D) Capturar formulario de Reserva (reservas.html) ---
+    if (rutaActual.includes("reservas.html")) {
+        var formReserva = document.querySelector("form");
+        if (formReserva) {
+            formReserva.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var inputCliente = formReserva.querySelector('input[type="text"]');
+                var inputFecha = formReserva.querySelector('input[type="date"]');
+                var inputHora = formReserva.querySelector('input[type="time"]');
+                var inputPersonas = formReserva.querySelector('input[type="number"]');
+                var selectMesa = formReserva.querySelector("select");
+
+                var cliente = inputCliente ? inputCliente.value : "Cliente";
+                var fecha = inputFecha ? inputFecha.value : "Sin fecha";
+                var hora = inputHora ? inputHora.value : "Sin hora";
+                var personas = inputPersonas ? inputPersonas.value : 2;
+                var mesa = selectMesa ? selectMesa.value : "Salón principal";
+
+                guardarReserva(cliente, fecha, hora, personas, mesa);
+                alert("¡Reserva registrada con éxito!");
+                formReserva.reset();
+            });
+        }
+    }
+
+    // --- E) Cargar datos si estamos en el Panel Administrativo
