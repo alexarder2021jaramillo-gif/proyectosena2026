@@ -20,7 +20,6 @@
         <div class="admin-tabs">
             <button class="tab-btn activo" onclick="mostrarSeccion('sec-pedidos', this)">Pedidos</button>
             <button class="tab-btn" onclick="mostrarSeccion('sec-reservas', this)">Reservas</button>
-            <button class="tab-btn" onclick="mostrarSeccion('sec-clientes', this)">Clientes</button>
             <button class="tab-btn" onclick="mostrarSeccion('sec-roles', this)">Roles</button>
         </div>
 
@@ -60,24 +59,7 @@
             </table>
         </section>
 
-        <!-- 3. SECCIÓN CLIENTES -->
-        <section id="sec-clientes" class="admin-seccion" style="display: none;">
-            <h2>Clientes Registrados</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Correo</th>
-                        <th>Teléfono</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-clientes"></tbody>
-            </table>
-        </section>
-
-        <!-- 4. SECCIÓN ROLES -->
+        <!-- 3. SECCIÓN ROLES -->
         <section id="sec-roles" class="admin-seccion" style="display: none;">
             <h2>Administración de Roles</h2>
             <table>
