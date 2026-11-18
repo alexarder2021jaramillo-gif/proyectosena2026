@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     correo: correo,
                     password: password,
                     telefono: "No registrado",
-                    rol: "Cliente"
+                    rol: "Mesero"
                 });
                 localStorage.setItem("usuariosSaborMarino", JSON.stringify(usuarios));
             }
@@ -326,10 +326,9 @@ function mostrarSeccion(idSeccion, boton) {
 async function cargarPanelAdmin() {
     const tablaPedidos = document.getElementById("tabla-pedidos");
     const tablaReservas = document.getElementById("tabla-reservas");
-    const tablaClientes = document.getElementById("tabla-clientes");
     const tablaRoles = document.getElementById("tabla-roles");
 
-    if (!tablaPedidos && !tablaReservas && !tablaClientes && !tablaRoles) return;
+    if (!tablaPedidos && !tablaReservas && !tablaRoles) return;
 
     let pedidos = [];
     let reservas = [];
@@ -381,32 +380,17 @@ async function cargarPanelAdmin() {
             }).join("");
     }
 
-    if (tablaClientes) {
-        tablaClientes.innerHTML = usuarios.length === 0
-            ? '<tr><td colspan="5">No hay clientes registrados.</td></tr>'
-            : usuarios.map(function (u, index) {
-                return `<tr>
-                    <td>${index + 1}</td>
-                    <td>${u.nombres}</td>
-                    <td>${u.correo}</td>
-                    <td>${u.telefono || "No registrado"}</td>
-                    <td>
-                        <button onclick="eliminarCliente(${u.id}, ${index})" class="btn-eliminar">Eliminar</button>
-                    </td>
-                </tr>`;
-            }).join("");
-    }
-
     if (tablaRoles) {
         tablaRoles.innerHTML = usuarios.map(function (u, index) {
+            var rolActual = ["Administrador", "Mesero", "Cocinero"].includes(u.rol) ? u.rol : "Mesero";
             return `<tr>
                 <td>${u.nombres} (${u.correo})</td>
-                <td><strong>${u.rol || "Cliente"}</strong></td>
+                <td><strong>${rolActual}</strong></td>
                 <td>
                     <select onchange="cambiarRol(${u.id}, ${index}, this.value)">
-                        <option value="Administrador" ${u.rol === "Administrador" ? "selected" : ""}>Administrador</option>
-                        <option value="Mesero / Cajero" ${u.rol === "Mesero / Cajero" ? "selected" : ""}>Mesero / Cajero</option>
-                        <option value="Cliente" ${u.rol === "Cliente" ? "selected" : ""}>Cliente</option>
+                        <option value="Administrador" ${rolActual === "Administrador" ? "selected" : ""}>Administrador</option>
+                        <option value="Mesero" ${rolActual === "Mesero" ? "selected" : ""}>Mesero</option>
+                        <option value="Cocinero" ${rolActual === "Cocinero" ? "selected" : ""}>Cocinero</option>
                     </select>
                 </td>
             </tr>`;
@@ -442,17 +426,6 @@ async function cancelarReserva(id, index) {
         const reservas = JSON.parse(localStorage.getItem("reservasSaborMarino")) || [];
         if (reservas[index]) reservas[index].estado = "Cancelada";
         localStorage.setItem("reservasSaborMarino", JSON.stringify(reservas));
-    }
-    cargarPanelAdmin();
-}
-
-async function eliminarCliente(id, index) {
-    if (!confirm("¿Eliminar este usuario?")) return;
-    const res = await llamarAPI("eliminar_cliente", { id });
-    if (!res) {
-        const usuarios = obtenerUsuariosLocal();
-        usuarios.splice(index, 1);
-        localStorage.setItem("usuariosSaborMarino", JSON.stringify(usuarios));
     }
     cargarPanelAdmin();
 }
